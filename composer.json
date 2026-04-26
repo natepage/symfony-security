@@ -1,0 +1,17 @@
+{
+    "name": "natepage/symfony-security",
+    "description": "Simple and opinionated security utilities for Symfony",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.4",
+        "firebase/php-jwt": "^7.0",
+        "workos/workos-php": "^5.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "NatePage\\SymfonySecurity\\": "src",
+            "NatePage\\SymfonySecurity\\Bundle\\": "bundle"
+        }
+    }
+}
