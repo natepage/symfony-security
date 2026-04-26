@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace NatePage\SymfonySecurity\OAuth\Driver;
 
-use NatePage\SymfonySecurity\OAuth\Controller\OAuthCallbackController;
 use NatePage\SymfonySecurity\OAuth\User\OAuthUserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,6 +13,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 abstract class AbstractOAuthDriver implements OAuthDriverInterface
 {
     public function __construct(
+        private readonly string $callbackRouteName,
         private readonly UrlGeneratorInterface $urlGenerator,
     ) {
     }
@@ -30,7 +30,7 @@ abstract class AbstractOAuthDriver implements OAuthDriverInterface
 
     public function supports(Request $request): bool
     {
-        return $request->attributes->get('_route') === OAuthCallbackController::ROUTE_APP_OAUTH_CALLBACK;
+        return $request->attributes->get('_route') === $this->callbackRouteName;
     }
 
     abstract protected function doRefreshUser(OAuthUserInterface $user): OAuthUserInterface;
@@ -46,7 +46,7 @@ abstract class AbstractOAuthDriver implements OAuthDriverInterface
 
     protected function generateCallbackUrl(?array $params = null): string
     {
-        return $this->generateAbsoluteUrl(OAuthCallbackController::ROUTE_APP_OAUTH_CALLBACK, $params);
+        return $this->generateAbsoluteUrl($this->callbackRouteName, $params);
     }
 
     protected function generateLastUrl(Request $request): string

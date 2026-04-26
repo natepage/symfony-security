@@ -40,9 +40,10 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
         private readonly WorkOS $workOS,
         private readonly string $clientId,
         private readonly string $logoutRedirectRouteName,
+        string $callbackRouteName,
         UrlGeneratorInterface $urlGenerator,
     ) {
-        parent::__construct($urlGenerator);
+        parent::__construct($callbackRouteName, $urlGenerator);
     }
 
     /**
@@ -69,7 +70,7 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
             throw new InvalidUserException('User must be an instance of OAuthUserInterface to get logout URL');
         }
 
-        $oauthParams = $user->getOauthParams();
+        $oauthParams = $user->getOAuthParams();
         if (isset($oauthParams[self::PARAM_SESSION_ID]) === false) {
             throw new InvalidUserException('User is missing session ID in OAuth parameters to get logout URL');
         }
@@ -106,7 +107,7 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
 
     protected function doRefreshUser(OAuthUserInterface $user): OAuthUserInterface
     {
-        $oauthParams = $user->getOauthParams();
+        $oauthParams = $user->getOAuthParams();
 
         // If no access token, then fail
         if (isset($oauthParams[self::PARAM_ACCESS_TOKEN], $oauthParams[self::PARAM_REFRESH_TOKEN]) === false) {
@@ -187,7 +188,7 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
 
         $this->eventDispatcher->dispatch($event);
 
-        $user = $event->getOauthUser();
+        $user = $event->getOAuthUser();
         if ($user instanceof OAuthUserInterface === false) {
             throw new InvalidUserException(
                 'Event UserFromWorkOsAuthResponseEvent did not return an instance of OAuthUserInterface'

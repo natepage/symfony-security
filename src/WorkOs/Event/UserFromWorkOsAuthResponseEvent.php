@@ -26,12 +26,12 @@ final class UserFromWorkOsAuthResponseEvent
         return $this->decodedAccessToken;
     }
 
-    public function getOauthUser(): ?OAuthUserInterface
+    public function getOAuthUser(): ?OAuthUserInterface
     {
         return $this->oauthUser;
     }
 
-    public function setOauthUser(?OAuthUserInterface $oauthUser): void
+    public function setOAuthUser(?OAuthUserInterface $oauthUser): void
     {
         $this->oauthUser = $oauthUser;
     }
