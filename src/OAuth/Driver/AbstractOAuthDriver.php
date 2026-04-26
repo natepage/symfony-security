@@ -14,14 +14,8 @@ use Symfony\Component\Security\Core\User\UserInterface;
 abstract class AbstractOAuthDriver implements OAuthDriverInterface
 {
     public function __construct(
-        private readonly string $name,
         private readonly UrlGeneratorInterface $urlGenerator,
     ) {
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
     }
 
     public function handleAuthFailure(Request $request, AuthenticationException $exception): ?Response

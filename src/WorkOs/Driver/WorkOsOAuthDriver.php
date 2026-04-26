@@ -40,10 +40,9 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
         private readonly WorkOS $workOS,
         private readonly string $clientId,
         private readonly string $logoutRedirectRouteName,
-        string $name,
         UrlGeneratorInterface $urlGenerator,
     ) {
-        parent::__construct($name, $urlGenerator);
+        parent::__construct($urlGenerator);
     }
 
     /**

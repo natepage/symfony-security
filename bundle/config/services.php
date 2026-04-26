@@ -26,5 +26,5 @@ return static function (ContainerConfigurator $containerConfigurator): void {
 
     $services
         ->set(OAuthDriverProviderInterface::class, FromRequestOAuthDriverProvider::class)
-        ->arg('$oauthDrivers', tagged_locator(tag: ConfigTag::OAuthDriver->value, defaultIndexMethod: 'getName'));
+        ->arg('$oauthDrivers', tagged_locator(tag: ConfigTag::OAuthDriver->value, indexAttribute: 'driver'));
 };
