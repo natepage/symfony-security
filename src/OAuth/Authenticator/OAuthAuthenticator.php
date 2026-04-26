@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace NatePage\SymfonySecurity\OAuth\Authenticator;
 
-use NatePage\SymfonySecurity\OAuth\Driver\OAuthDriverInterface;
+use NatePage\SymfonySecurity\OAuth\Driver\OAuthDriverProviderInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 final class OAuthAuthenticator extends AbstractAuthenticator
 {
     public function __construct(
-        private readonly OAuthDriverInterface $driver,
+        private readonly OAuthDriverProviderInterface $oauthDriverProvider,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -25,7 +25,7 @@ final class OAuthAuthenticator extends AbstractAuthenticator
     public function authenticate(Request $request): Passport
     {
         try {
-            $user = $this->driver->handleCallback($request);
+            $user = $this->oauthDriverProvider->getOAuthDriver()->handleCallback($request);
         } catch (\Throwable $throwable) {
             $this->logger->error('OAuth authentication failed', [
                 'error' => $throwable->getMessage(),
@@ -44,16 +44,16 @@ final class OAuthAuthenticator extends AbstractAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
-        return $this->driver->handleAuthSuccess($request);
+        return $this->oauthDriverProvider->getOAuthDriver()->handleAuthSuccess($request);
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
-        return $this->driver->handleAuthFailure($request, $exception);
+        return $this->oauthDriverProvider->getOAuthDriver()->handleAuthFailure($request, $exception);
     }
 
     public function supports(Request $request): ?bool
     {
-        return $this->driver->supports($request);
+        return $this->oauthDriverProvider->getOAuthDriver()->supports($request);
     }
 }

@@ -23,6 +23,8 @@ interface OAuthDriverInterface
 
     public function getLogoutUrl(UserInterface $user): string;
 
+    public function getName(): string;
+
     public function handleAuthSuccess(Request $request): RedirectResponse;
 
     public function handleAuthFailure(Request $request, AuthenticationException $exception): ?Response;

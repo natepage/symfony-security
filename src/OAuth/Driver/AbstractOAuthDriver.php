@@ -10,16 +10,18 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Contracts\Service\Attribute\Required;
 
 abstract class AbstractOAuthDriver implements OAuthDriverInterface
 {
-    private UrlGeneratorInterface $urlGenerator;
+    public function __construct(
+        private readonly string $name,
+        private readonly UrlGeneratorInterface $urlGenerator,
+    ) {
+    }
 
-    #[Required]
-    public function setUrlGenerator(UrlGeneratorInterface $urlGenerator): void
+    public function getName(): string
     {
-        $this->urlGenerator = $urlGenerator;
+        return $this->name;
     }
 
     public function handleAuthFailure(Request $request, AuthenticationException $exception): ?Response

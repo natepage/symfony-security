@@ -14,6 +14,7 @@ use NatePage\Utils\Helper\StringHelper;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
@@ -39,7 +40,10 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
         private readonly WorkOS $workOS,
         private readonly string $clientId,
         private readonly string $logoutRedirectRouteName,
+        string $name,
+        UrlGeneratorInterface $urlGenerator,
     ) {
+        parent::__construct($name, $urlGenerator);
     }
 
     /**
