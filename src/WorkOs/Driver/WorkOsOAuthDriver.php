@@ -38,6 +38,7 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly LoggerInterface $logger,
         private readonly WorkOS $workOs,
+        private readonly string $firewallName,
         private readonly string $clientId,
         private readonly string $logoutRedirectRouteName,
         string $callbackRouteName,

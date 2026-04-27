@@ -11,6 +11,7 @@ final class UserFromWorkOsAuthResponseEvent
     private ?OAuthUserInterface $oauthUser = null;
 
     public function __construct(
+        private readonly string $firewallName,
         private readonly AuthenticateResponse $authResponse,
         private readonly ?array $decodedAccessToken = null,
     ) {
@@ -24,6 +25,11 @@ final class UserFromWorkOsAuthResponseEvent
     public function getDecodedAccessToken(): ?array
     {
         return $this->decodedAccessToken;
+    }
+
+    public function getFirewallName(): string
+    {
+        return $this->firewallName;
     }
 
     public function getOAuthUser(): ?OAuthUserInterface

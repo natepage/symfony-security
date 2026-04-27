@@ -61,6 +61,7 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
         // OAuth driver
         $container->setDefinition($driverId, (new ChildDefinition(WorkOsOAuthDriver::class))
             ->setArgument('$workOs', new Reference($workOsId))
+            ->setArgument('$firewallName', $firewallName)
             ->setArgument('$clientId', $config['client_id'])
             ->setArgument('$callbackRouteName', $callbackRouteName)
             ->setArgument('$logoutRedirectRouteName', $config['logout_redirect_route'])
