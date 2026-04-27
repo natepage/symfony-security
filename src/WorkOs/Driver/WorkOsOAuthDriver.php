@@ -166,7 +166,7 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
             throw new InvalidStateException('Invalid state parameter: invalid data');
         }
 
-       return \json_decode($state, true);
+       return \json_decode($data, true);
     }
 
     private function getCsrfTokenId(): string
