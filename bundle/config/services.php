@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use NatePage\SymfonySecurity\OAuth\Authenticator\OAuthAuthenticator;
-use NatePage\SymfonySecurity\OAuth\Entrypoint\OAuthEntrypoint;
 use NatePage\SymfonySecurity\OAuth\Listener\OAuthLogoutListener;
 use NatePage\SymfonySecurity\OAuth\Provider\OAuthUserProvider;
 use NatePage\SymfonySecurity\WorkOs\Driver\WorkOsOAuthDriver;
@@ -20,7 +19,6 @@ return static function (ContainerConfigurator $containerConfigurator): void {
     // Security
     $abstractServices = [
         OAuthAuthenticator::class,
-        OAuthEntrypoint::class,
         OAuthLogoutListener::class,
         OAuthUserProvider::class,
     ];

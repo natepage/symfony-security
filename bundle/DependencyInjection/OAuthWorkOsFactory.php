@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace NatePage\SymfonySecurity\Bundle\DependencyInjection;
 
 use NatePage\SymfonySecurity\OAuth\Authenticator\OAuthAuthenticator;
-use NatePage\SymfonySecurity\OAuth\Entrypoint\OAuthEntrypoint;
 use NatePage\SymfonySecurity\OAuth\Listener\OAuthLogoutListener;
 use NatePage\SymfonySecurity\OAuth\Provider\OAuthUserProvider;
 use NatePage\SymfonySecurity\OAuth\Routing\CallbackRouteLoader;
@@ -50,8 +49,7 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
         $callbackRouteLoaderId = \sprintf('natepage.security.route_loader.workos.%s', $firewallName);
         $callbackRouteName = \sprintf('natepage_security_oauth_callback_%s', $firewallName);
         $driverId = \sprintf('natepage.security.oauth.driver.%s', $firewallName);
-        $entrypointId = \sprintf('natepage.security.entrypoint.workos.%s', $firewallName);
-        $logoutListenerId = \sprintf('natepage.security.entrypoint.workos.%s', $firewallName);
+        $logoutListenerId = \sprintf('natepage.security.logout_listener.workos.%s', $firewallName);
         $workOsId = \sprintf('natepage.security.oauth.workos.%s', $firewallName);
 
         // Actual WorkOS class (3rd party)
@@ -69,12 +67,8 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
             ->setArgument('$organisationId', $config['organisation_id'])
             ->setArgument('$authProvider', $config['auth_provider']));
 
-        // Symfony Authenticator using OAuth driver
+        // Symfony Authenticator + Entrypoint using OAuth driver
         $container->setDefinition($authenticatorId, (new ChildDefinition(OAuthAuthenticator::class))
-            ->setArgument('$oauthDriver', new Reference($driverId)));
-
-        // Symfony Entrypoint using OAuth driver
-        $container->setDefinition($entrypointId, (new ChildDefinition(OAuthEntrypoint::class))
             ->setArgument('$oauthDriver', new Reference($driverId)));
 
         // Symfony UserProvider using OAuth driver
@@ -92,7 +86,7 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
             ->setArgument('$pattern', $this->patterns[$firewallName] ?? null)
             ->addTag('routing.loader'));
 
-        return [$authenticatorId, $entrypointId];
+        return $authenticatorId;
     }
 
     public function getKey(): string

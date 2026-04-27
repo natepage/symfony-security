@@ -4,8 +4,9 @@ declare(strict_types=1);
 namespace NatePage\SymfonySecurity\OAuth\Authenticator;
 
 use NatePage\SymfonySecurity\OAuth\Driver\OAuthDriverInterface;
-use NatePage\SymfonySecurity\OAuth\Driver\OAuthDriverProviderInterface;
+use NatePage\SymfonySecurity\OAuth\Event\OAuthEntrypointStartForTurboFrameEvent;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -14,12 +15,15 @@ use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
+use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
-final class OAuthAuthenticator extends AbstractAuthenticator
+final class OAuthAuthenticator extends AbstractAuthenticator implements AuthenticationEntryPointInterface
 {
     public function __construct(
         private readonly OAuthDriverInterface $oauthDriver,
         private readonly LoggerInterface $logger,
+        private readonly EventDispatcherInterface $eventDispatcher,
     ) {
     }
 
@@ -56,5 +60,21 @@ final class OAuthAuthenticator extends AbstractAuthenticator
     public function supports(Request $request): ?bool
     {
         return $this->oauthDriver->supports($request);
+    }
+
+    public function start(Request $request, ?AuthenticationException $authException = null): Response
+    {
+        $authorizationUrl = $this->oauthDriver->getAuthorizationUrl($request);
+
+        if ($request->headers->has('Turbo-Frame')) {
+            $event = new OAuthEntrypointStartForTurboFrameEvent($authorizationUrl, $request->headers->get('Turbo-Frame'));
+            $this->eventDispatcher->dispatch($event);
+
+            if ($event->getResponse() !== null) {
+                return $event->getResponse();
+            }
+        }
+
+        return new RedirectResponse($authorizationUrl);
     }
 }
