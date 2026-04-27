@@ -18,6 +18,8 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->autowire()
         ->autoconfigure();
 
+    // TODO: change implementation into Security AuthenticatorFactoryInterface
+
     $services
         ->set(OAuthAuthenticator::class)
         ->set(OAuthEntrypoint::class)
