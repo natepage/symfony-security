@@ -35,6 +35,8 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
                 ->scalarNode('client_id')->isRequired()->end()
                 ->scalarNode('logout_redirect_route')->isRequired()->end()
                 ->scalarNode('provider')->end()
+                ->scalarNode('auth_provider')->defaultNull()->end()
+                ->scalarNode('organisation_id')->defaultNull()->end()
             ->end();
     }
 
@@ -63,7 +65,9 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
             ->setArgument('$workOs', new Reference($workOsId))
             ->setArgument('$clientId', $config['client_id'])
             ->setArgument('$callbackRouteName', $callbackRouteName)
-            ->setArgument('$logoutRedirectRouteName', $config['logout_redirect_route']));
+            ->setArgument('$logoutRedirectRouteName', $config['logout_redirect_route'])
+            ->setArgument('$organisationId', $config['organisation_id'])
+            ->setArgument('$authProvider', $config['auth_provider']));
 
         // Symfony Authenticator using OAuth driver
         $container->setDefinition($authenticatorId, (new ChildDefinition(OAuthAuthenticator::class))

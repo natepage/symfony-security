@@ -42,6 +42,8 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
         private readonly string $logoutRedirectRouteName,
         string $callbackRouteName,
         UrlGeneratorInterface $urlGenerator,
+        private readonly ?string $organisationId = null,
+        private readonly ?string $authProvider = null,
     ) {
         parent::__construct($callbackRouteName, $urlGenerator);
     }
@@ -57,10 +59,15 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
             'token' => $this->csrfTokenManager->getToken($this->getCsrfTokenId())->getValue(),
         ];
 
+        $provider = $this->authProvider
+            ? UserManagementAuthenticationProvider::from($this->authProvider)
+            : UserManagementAuthenticationProvider::Authkit;
+
         return $this->workOs->userManagement()->getAuthorizationUrl(
             redirectUri: $this->generateCallbackUrl(),
-            provider: UserManagementAuthenticationProvider::Authkit,
+            provider: $provider,
             state: StringHelper::urlSafeBase64Encode(\json_encode($state)),
+            organizationId: $this->organisationId,
         );
     }
 
