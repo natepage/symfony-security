@@ -3,9 +3,7 @@ declare(strict_types=1);
 
 namespace NatePage\SymfonySecurity\Bundle;
 
-use NatePage\SymfonySecurity\Bundle\DependencyInjection\OAuthFactory;
-use NatePage\SymfonySecurity\Bundle\Enum\ConfigTag;
-use NatePage\SymfonySecurity\OAuth\Driver\OAuthDriverInterface;
+use NatePage\SymfonySecurity\Bundle\DependencyInjection\OAuthWorkOsFactory;
 use Symfony\Bundle\SecurityBundle\DependencyInjection\SecurityExtension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -24,15 +22,11 @@ final class SymfonySecurityBundle extends AbstractBundle
 
         /** @var SecurityExtension $extension */
         $extension = $container->getExtension('security');
-        $extension->addAuthenticatorFactory(new OAuthFactory());
+        $extension->addAuthenticatorFactory(new OAuthWorkOsFactory());
     }
 
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        $builder
-            ->registerForAutoconfiguration(OAuthDriverInterface::class)
-            ->addTag(ConfigTag::OAuthDriver->value);
-
         $container->import('config/services.php');
     }
 }

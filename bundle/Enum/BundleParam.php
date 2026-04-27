@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace NatePage\SymfonySecurity\Bundle\Enum;
 
-enum ConfigTag: string
+enum BundleParam: string
 {
-    case OAuthDriver = 'symfony_security.oauth.driver';
+    case RouteType = 'natepage.symfony_security';
 }

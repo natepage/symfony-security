@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace NatePage\SymfonySecurity\OAuth\Provider;
 
-use NatePage\SymfonySecurity\OAuth\Driver\OAuthDriverProviderInterface;
+use NatePage\SymfonySecurity\OAuth\Driver\OAuthDriverInterface;
 use NatePage\SymfonySecurity\OAuth\Event\RefreshOAuthUserEvent;
 use NatePage\SymfonySecurity\OAuth\User\OAuthUserInterface;
 use RuntimeException;
@@ -15,7 +15,7 @@ final readonly class OAuthUserProvider implements UserProviderInterface
 {
     public function __construct(
         private EventDispatcherInterface $eventDispatcher,
-        private OAuthDriverProviderInterface $oauthDriverProvider,
+        private OAuthDriverInterface $oauthDriver,
     ) {
     }
 
@@ -26,7 +26,7 @@ final readonly class OAuthUserProvider implements UserProviderInterface
 
     public function refreshUser(UserInterface $user): UserInterface
     {
-        $user = $this->oauthDriverProvider->getOAuthDriver()->refreshUser($user);
+        $user = $this->oauthDriver->refreshUser($user);
         if ($user instanceof OAuthUserInterface === false) {
             return $user;
         }

@@ -3,15 +3,13 @@ declare(strict_types=1);
 
 namespace NatePage\SymfonySecurity\OAuth\Listener;
 
-use NatePage\SymfonySecurity\OAuth\Driver\OAuthDriverProviderInterface;
-use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use NatePage\SymfonySecurity\OAuth\Driver\OAuthDriverInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Security\Http\Event\LogoutEvent;
 
-#[AsEventListener(LogoutEvent::class)]
 final readonly class OAuthLogoutListener
 {
-    public function __construct(private OAuthDriverProviderInterface $oauthDriverProvider)
+    public function __construct(private OAuthDriverInterface $oauthDriver)
     {
     }
 
@@ -22,7 +20,7 @@ final readonly class OAuthLogoutListener
             return;
         }
 
-        $logoutUrl = $this->oauthDriverProvider->getOAuthDriver()->getLogoutUrl($user);
+        $logoutUrl = $this->oauthDriver->getLogoutUrl($user);
 
         $event->setResponse(new RedirectResponse($logoutUrl));
     }

@@ -37,7 +37,7 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
         private readonly CsrfTokenManagerInterface $csrfTokenManager,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly LoggerInterface $logger,
-        private readonly WorkOS $workOS,
+        private readonly WorkOS $workOs,
         private readonly string $clientId,
         private readonly string $logoutRedirectRouteName,
         string $callbackRouteName,
@@ -57,7 +57,7 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
             'token' => $this->csrfTokenManager->getToken($this->getCsrfTokenId())->getValue(),
         ];
 
-        return $this->workOS->userManagement()->getAuthorizationUrl(
+        return $this->workOs->userManagement()->getAuthorizationUrl(
             redirectUri: $this->generateCallbackUrl(),
             provider: UserManagementAuthenticationProvider::Authkit,
             state: StringHelper::urlSafeBase64Encode(\json_encode($state)),
@@ -75,7 +75,7 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
             throw new InvalidUserException('User is missing session ID in OAuth parameters to get logout URL');
         }
 
-        return $this->workOS->userManagement()->getLogoutUrl(
+        return $this->workOs->userManagement()->getLogoutUrl(
             $oauthParams[self::PARAM_SESSION_ID],
             $this->generateAbsoluteUrl($this->logoutRedirectRouteName)
         );
@@ -100,7 +100,7 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
             throw new InvalidStateException('Invalid state parameter: CSRF token invalid');
         }
 
-        $workOsUser = $this->workOS->userManagement()->authenticateWithCode($code);
+        $workOsUser = $this->workOs->userManagement()->authenticateWithCode($code);
 
         return $this->instantiateUser($workOsUser);
     }
@@ -118,7 +118,7 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
         $jwt = $this->decodeAccessToken($oauthParams[self::PARAM_ACCESS_TOKEN]);
         if ($jwt === null) {
             try {
-                $workOsUser = $this->workOS->userManagement()->authenticateWithRefreshToken(
+                $workOsUser = $this->workOs->userManagement()->authenticateWithRefreshToken(
                     $oauthParams[self::PARAM_REFRESH_TOKEN]
                 );
 
@@ -177,7 +177,7 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
         return $this->cache->get($jwkCacheKey, function (ItemInterface $item): array {
             $item->expiresAfter(3600);
 
-            return $this->workOS->userManagement()->getJwks($this->clientId)->toArray();
+            return $this->workOs->userManagement()->getJwks($this->clientId)->toArray();
         });
     }
 
