@@ -25,11 +25,12 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
     private const string KEY = 'oauth-workos';
     private const int PRIORITY = -50;
 
+    private array $patterns = [];
+
     public function addConfiguration(NodeDefinition $builder): void
     {
         $builder
             ->children()
-                ->scalarNode('pattern')->isRequired()->end()
                 ->scalarNode('api_key')->isRequired()->end()
                 ->scalarNode('client_id')->isRequired()->end()
                 ->scalarNode('logout_redirect_route')->isRequired()->end()
@@ -52,39 +53,39 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
         $workOsId = \sprintf('natepage.security.oauth.workos.%s', $firewallName);
 
         // Actual WorkOS class (3rd party)
-        $container->set($workOsId, (new Definition(WorkOS::class))
+        $container->setDefinition($workOsId, (new Definition(WorkOS::class))
             ->setFactory([new Reference(WorkOsFactory::class), 'create'])
             ->setArgument('$apiKey', $config['api_key'])
             ->setArgument('$clientId', $config['client_id']));
 
         // OAuth driver
-        $container->set($driverId, (new ChildDefinition(WorkOsOAuthDriver::class))
+        $container->setDefinition($driverId, (new ChildDefinition(WorkOsOAuthDriver::class))
             ->setArgument('$workOs', new Reference($workOsId))
             ->setArgument('$clientId', $config['client_id'])
             ->setArgument('$callbackRouteName', $callbackRouteName)
             ->setArgument('$logoutRedirectRouteName', $config['logout_redirect_route']));
 
         // Symfony Authenticator using OAuth driver
-        $container->set($authenticatorId, (new ChildDefinition(OAuthAuthenticator::class))
+        $container->setDefinition($authenticatorId, (new ChildDefinition(OAuthAuthenticator::class))
             ->setArgument('$oauthDriver', new Reference($driverId)));
 
         // Symfony Entrypoint using OAuth driver
-        $container->set($entrypointId, (new ChildDefinition(OAuthEntrypoint::class))
+        $container->setDefinition($entrypointId, (new ChildDefinition(OAuthEntrypoint::class))
             ->setArgument('$oauthDriver', new Reference($driverId)));
 
         // Symfony UserProvider using OAuth driver
-        $container->set($config['provider'], (new ChildDefinition(OAuthUserProvider::class))
+        $container->setDefinition($userProviderId, (new ChildDefinition(OAuthUserProvider::class))
             ->setArgument('$oauthDriver', new Reference($driverId)));
 
         // Logout Listener to redirect to right route
-        $container->set($logoutListenerId, (new ChildDefinition(OAuthLogoutListener::class))
+        $container->setDefinition($logoutListenerId, (new ChildDefinition(OAuthLogoutListener::class))
             ->setArgument('$oauthDriver', new Reference($driverId))
             ->addTag('kernel.event_listener', ['event' => LogoutEvent::class]));
 
         // Callback route loader
-        $container->set($callbackRouteLoaderId, (new Definition(CallbackRouteLoader::class))
+        $container->setDefinition($callbackRouteLoaderId, (new Definition(CallbackRouteLoader::class))
             ->setArgument('$callbackRouteName', $callbackRouteName)
-            ->setArgument('$pattern', $config['pattern'])
+            ->setArgument('$pattern', $this->patterns[$firewallName] ?? null)
             ->addTag('routing.loader'));
 
         return [$authenticatorId, $entrypointId];
@@ -105,33 +106,15 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
      */
     public function prepend(ContainerBuilder $container): void
     {
+        $this->patterns = [];
         $securityConfigs = $container->getExtensionConfig('security');
+
         foreach (\array_reverse($securityConfigs) as $config) {
             foreach ($config['firewalls'] ?? [] as $firewallName => $firewallConfig) {
-                if (isset($firewallConfig[self::KEY])) {
-                    $userProviderId = $this->getUserProviderId($firewallName);
-
-                    $container->prependExtensionConfig('security', [
-                        'providers' => [
-                            $userProviderId => ['id' => $userProviderId],
-                        ],
-                        'firewalls' => [
-                            $firewallName => [
-                                self::KEY => [
-                                    'provider' => $userProviderId,
-                                ],
-                            ],
-                        ],
-                    ]);
-
-                    return;
+                if (isset($firewallConfig[self::KEY], $firewallConfig['pattern'])) {
+                    $this->patterns[$firewallName] = $firewallConfig['pattern'];
                 }
             }
         }
-    }
-
-    private function getUserProviderId(string $firewallName): string
-    {
-        return \sprintf('natepage.security.user_provider.workos.%s', $firewallName);
     }
 }
