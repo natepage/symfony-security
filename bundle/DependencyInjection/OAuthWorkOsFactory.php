@@ -101,17 +101,16 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
         return self::PRIORITY;
     }
 
-    /**
-     * This method is used to dynamically register the user provider for a firewall using this authenticator.
-     */
     public function prepend(ContainerBuilder $container): void
     {
         $this->patterns = [];
         $securityConfigs = $container->getExtensionConfig('security');
+        $sanitizedKey = \str_replace('-', '_', self::KEY);
 
         foreach (\array_reverse($securityConfigs) as $config) {
             foreach ($config['firewalls'] ?? [] as $firewallName => $firewallConfig) {
-                if (isset($firewallConfig[self::KEY], $firewallConfig['pattern'])) {
+                if (isset($firewallConfig[$sanitizedKey], $firewallConfig['pattern'])
+                    && (isset($this->patterns[$firewallName]) === false)) {
                     $this->patterns[$firewallName] = $firewallConfig['pattern'];
                 }
             }
