@@ -192,7 +192,7 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
     private function instantiateUser(AuthenticateResponse $response): OAuthUserInterface
     {
         $jwt = $this->decodeAccessToken($response->accessToken);
-        $event = new UserFromWorkOsAuthResponseEvent($response, $jwt);
+        $event = new UserFromWorkOsAuthResponseEvent($this->firewallName, $response, $jwt);
 
         $this->eventDispatcher->dispatch($event);
 
