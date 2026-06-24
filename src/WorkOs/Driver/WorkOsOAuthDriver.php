@@ -203,6 +203,14 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
             );
         }
 
+        // Set default OAuth params here so applications don't have to do it over and over
+        $oauthParams = $user->getOAuthParams();
+        $oauthParams[self::PARAM_ACCESS_TOKEN] = $response->accessToken;
+        $oauthParams[self::PARAM_REFRESH_TOKEN] = $response->refreshToken;
+        $oauthParams[self::PARAM_SESSION_ID] = $jwt['sid'] ?? null;
+
+        $user->setOAuthParams($oauthParams);
+
         return $user;
     }
 }

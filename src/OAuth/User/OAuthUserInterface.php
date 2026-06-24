@@ -8,4 +8,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 interface OAuthUserInterface extends UserInterface
 {
     public function getOAuthParams(): array;
+
+    public function setOAuthParams(array $oauthParams): void;
 }
