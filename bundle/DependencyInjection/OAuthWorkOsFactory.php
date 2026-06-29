@@ -24,6 +24,8 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
     private const string KEY = 'oauth-workos';
     private const int PRIORITY = -50;
 
+    private array $callbackRoutesMapping = [];
+
     private array $patterns = [];
 
     public function addConfiguration(NodeDefinition $builder): void
@@ -46,7 +48,6 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
         string $userProviderId
     ): string|array {
         $authenticatorId = \sprintf('natepage.security.authenticator.workos.%s', $firewallName);
-        $callbackRouteLoaderId = \sprintf('natepage.security.route_loader.workos.%s', $firewallName);
         $callbackRouteName = \sprintf('natepage_security_oauth_callback_%s', $firewallName);
         $driverId = \sprintf('natepage.security.oauth.driver.%s', $firewallName);
         $logoutListenerId = \sprintf('natepage.security.logout_listener.workos.%s', $firewallName);
@@ -82,9 +83,11 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
             ->addTag('kernel.event_listener', ['event' => LogoutEvent::class]));
 
         // Callback route loader
+        $this->callbackRoutesMapping[$callbackRouteName] = $this->patterns[$firewallName] ?? null;
+        // Fixed service id so it gets overridden with latest mapping
+        $callbackRouteLoaderId = 'natepage.security.route_loader.workos';
         $container->setDefinition($callbackRouteLoaderId, (new Definition(CallbackRouteLoader::class))
-            ->setArgument('$callbackRouteName', $callbackRouteName)
-            ->setArgument('$pattern', $this->patterns[$firewallName] ?? null)
+            ->setArgument('$routesMapping', $this->callbackRoutesMapping)
             ->addTag('routing.loader'));
 
         return $authenticatorId;

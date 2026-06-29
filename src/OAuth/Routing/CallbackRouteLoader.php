@@ -15,8 +15,7 @@ final class CallbackRouteLoader extends Loader
     private bool $loaded = false;
 
     public function __construct(
-        private readonly string $pattern,
-        private readonly string $callbackRouteName,
+        private readonly array $routesMapping,
         ?string $env = null
     ) {
         parent::__construct($env);
@@ -28,19 +27,23 @@ final class CallbackRouteLoader extends Loader
             throw new \RuntimeException('Do not add the "oauth_callback" route loader twice.');
         }
 
-        $path = u($this->pattern)
-            ->trimPrefix('^')
-            ->ensureStart('/')
-            ->ensureEnd('/oauth/callback')
-            ->toString();
-
         $routes = new RouteCollection();
-        $routes->add($this->callbackRouteName, new Route(
-            path: $path,
-            defaults: [
-                '_controller' => OAuthCallbackController::class,
-            ]
-        ));
+
+        foreach ($this->routesMapping as $routeName => $pattern) {
+            $path = u($pattern)
+                ->trimPrefix('^')
+                ->ensureStart('/')
+                ->ensureEnd('/oauth/callback')
+                ->toString();
+
+            $routes->add($routeName, new Route(
+                path: $path,
+                defaults: [
+                    '_controller' => OAuthCallbackController::class,
+                ],
+                methods: ['GET'],
+            ));
+        }
 
         $this->loaded = true;
 
