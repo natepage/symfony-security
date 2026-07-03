@@ -16,6 +16,7 @@ final readonly class OAuthUserProvider implements UserProviderInterface
     public function __construct(
         private EventDispatcherInterface $eventDispatcher,
         private OAuthDriverInterface $oauthDriver,
+        private string $userClass,
     ) {
     }
 
@@ -41,6 +42,6 @@ final readonly class OAuthUserProvider implements UserProviderInterface
 
     public function supportsClass(string $class): bool
     {
-        return \is_a($class, OAuthUserInterface::class, true);
+        return \is_a($class, $this->userClass, true);
     }
 }

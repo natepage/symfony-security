@@ -38,6 +38,7 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
                 ->scalarNode('provider')->end()
                 ->scalarNode('auth_provider')->defaultNull()->end()
                 ->scalarNode('organisation_id')->defaultNull()->end()
+                ->scalarNode('user_class')->isRequired()->end()
             ->end();
     }
 
@@ -75,7 +76,8 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
 
         // Symfony UserProvider using OAuth driver
         $container->setDefinition($userProviderId, (new ChildDefinition(OAuthUserProvider::class))
-            ->setArgument('$oauthDriver', new Reference($driverId)));
+            ->setArgument('$oauthDriver', new Reference($driverId)))
+            ->setArgument('$userClass', $config['user_class']);
 
         // Logout Listener to redirect to right route
         $container->setDefinition($logoutListenerId, (new ChildDefinition(OAuthLogoutListener::class))
