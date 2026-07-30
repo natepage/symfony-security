@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace NatePage\SymfonySecurity\OAuth\Driver;
 
+use NatePage\SymfonySecurity\OAuth\ValueObject\Invitation;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,6 +31,12 @@ interface OAuthDriverInterface
     public function handleCallback(Request $request): UserInterface;
 
     public function refreshUser(UserInterface $user): UserInterface;
+
+    public function resendInvitation(string $invitationId): Invitation;
+
+    public function revokeInvitation(string $invitationId): Invitation;
+
+    public function sendInvitation(string $email, ?int $expiryInDays = null): Invitation;
 
     public function supports(Request $request): bool;
 }

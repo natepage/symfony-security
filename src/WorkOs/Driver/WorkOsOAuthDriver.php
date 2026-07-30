@@ -5,6 +5,7 @@ namespace NatePage\SymfonySecurity\WorkOs\Driver;
 
 use NatePage\SymfonySecurity\OAuth\Driver\AbstractOAuthDriver;
 use NatePage\SymfonySecurity\OAuth\User\OAuthUserInterface;
+use NatePage\SymfonySecurity\OAuth\ValueObject\Invitation;
 use NatePage\SymfonySecurity\WorkOs\Event\UserFromWorkOsAuthResponseEvent;
 use NatePage\SymfonySecurity\WorkOs\Exception\InvalidStateException;
 use NatePage\SymfonySecurity\WorkOs\Exception\InvalidUserException;
@@ -12,6 +13,7 @@ use Firebase\JWT\JWK;
 use Firebase\JWT\JWT;
 use NatePage\Utils\Helper\StringHelper;
 use Psr\Log\LoggerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -23,12 +25,17 @@ use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use WorkOS\Resource\AuthenticateResponse;
+use WorkOS\Resource\CreateUserInviteOptionsLocale;
+use WorkOS\Resource\Invitation as WorkOsInvitation;
+use WorkOS\Resource\UserInvite;
 use WorkOS\Resource\UserManagementAuthenticationProvider;
 use WorkOS\WorkOS;
 
 final class WorkOsOAuthDriver extends AbstractOAuthDriver
 {
     private const string CSRF_TOKEN_ID = 'work_os_auth_%s';
+
+    private const int DEFAULT_INVITATION_EXPIRY_IN_DAYS = 5;
 
     private const string JWK_CACHE_KEY = 'work_os_jwks_%s';
 
@@ -43,6 +50,7 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
         private readonly string $logoutRedirectRouteName,
         string $callbackRouteName,
         UrlGeneratorInterface $urlGenerator,
+        private readonly Security $security,
         private readonly ?string $organisationId = null,
         private readonly ?string $authProvider = null,
     ) {
@@ -111,6 +119,50 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
         $workOsUser = $this->workOs->userManagement()->authenticateWithCode($code);
 
         return $this->instantiateUser($workOsUser);
+    }
+
+    /**
+     * @throws \WorkOS\Exception\WorkOSException
+     */
+    public function resendInvitation(string $invitationId): Invitation
+    {
+        $invite = $this->workOs->userManagement()->resendInvitation(
+            id: $invitationId,
+            locale: CreateUserInviteOptionsLocale::En,
+        );
+
+        return $this->instantiateInvitation($invite);
+    }
+
+    /**
+     * @throws \WorkOS\Exception\WorkOSException
+     */
+    public function revokeInvitation(string $invitationId): Invitation
+    {
+        $invite = $this->workOs->userManagement()->revokeInvitation(
+            id: $invitationId,
+        );
+
+        return $this->instantiateInvitation($invite);
+    }
+
+    /**
+     * @throws \WorkOS\Exception\WorkOSException
+     */
+    public function sendInvitation(string $email, ?int $expiryInDays = null): Invitation
+    {
+        $currentUser = $this->security->getUser();
+        $userIdentifier = $currentUser instanceof OAuthUserInterface ? $currentUser->getUserIdentifier() : null;
+
+        $invite = $this->workOs->userManagement()->sendInvitation(
+            email: $email,
+            organizationId: $this->organisationId,
+            expiresInDays: $expiryInDays ?? self::DEFAULT_INVITATION_EXPIRY_IN_DAYS,
+            inviterUserId: $userIdentifier,
+            locale: CreateUserInviteOptionsLocale::En,
+        );
+
+        return $this->instantiateInvitation($invite);
     }
 
     protected function doRefreshUser(OAuthUserInterface $user): OAuthUserInterface
@@ -187,6 +239,17 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
 
             return $this->workOs->userManagement()->getJwks($this->clientId)->toArray();
         });
+    }
+
+    private function instantiateInvitation(UserInvite|WorkOsInvitation $invite): Invitation
+    {
+        return new Invitation(
+            id: $invite->id,
+            status: $invite->state->value,
+            token: $invite->token,
+            expiresAt: $invite->expiresAt,
+            createdAt: $invite->createdAt,
+        );
     }
 
     private function instantiateUser(AuthenticateResponse $response): OAuthUserInterface
