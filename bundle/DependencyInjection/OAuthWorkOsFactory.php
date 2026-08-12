@@ -26,7 +26,7 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
 
     private array $callbackRoutesMapping = [];
 
-    private array $patterns = [];
+    private array $routeConfigs = [];
 
     public function addConfiguration(NodeDefinition $builder): void
     {
@@ -85,7 +85,7 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
             ->addTag('kernel.event_listener', ['event' => LogoutEvent::class]));
 
         // Callback route loader
-        $this->callbackRoutesMapping[$callbackRouteName] = $this->patterns[$firewallName] ?? null;
+        $this->callbackRoutesMapping[$callbackRouteName] = $this->routeConfigs[$firewallName] ?? null;
         // Fixed service id so it gets overridden with latest mapping
         $callbackRouteLoaderId = 'natepage.security.route_loader.workos';
         $container->setDefinition($callbackRouteLoaderId, (new Definition(CallbackRouteLoader::class))
@@ -107,15 +107,25 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
 
     public function prepend(ContainerBuilder $container): void
     {
-        $this->patterns = [];
+        $this->routeConfigs = [];
         $securityConfigs = $container->getExtensionConfig('security');
         $sanitizedKey = \str_replace('-', '_', self::KEY);
 
         foreach (\array_reverse($securityConfigs) as $config) {
             foreach ($config['firewalls'] ?? [] as $firewallName => $firewallConfig) {
-                if (isset($firewallConfig[$sanitizedKey], $firewallConfig['pattern'])
-                    && (isset($this->patterns[$firewallName]) === false)) {
-                    $this->patterns[$firewallName] = $firewallConfig['pattern'];
+                // Does not contain oauth-workos config, skip
+                if (isset($firewallConfig[$sanitizedKey]) === false) {
+                    continue;
+                }
+
+                if (isset($this->routeConfigs[$firewallName]) === false) {
+                    $this->routeConfigs[$firewallName] = [];
+                }
+
+                foreach (['host', 'pattern'] as $key) {
+                    if (isset($firewallConfig[$key])) {
+                        $this->routeConfigs[$firewallName][$key] = $firewallConfig[$key];
+                    }
                 }
             }
         }
