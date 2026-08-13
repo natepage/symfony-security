@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace NatePage\SymfonySecurity\OAuth\Authenticator;
 
 use NatePage\SymfonySecurity\OAuth\Driver\OAuthDriverInterface;
+use NatePage\SymfonySecurity\OAuth\Event\OAuthAuthenticationFailureEvent;
+use NatePage\SymfonySecurity\OAuth\Event\OAuthAuthenticationSuccessEvent;
 use NatePage\SymfonySecurity\OAuth\Event\OAuthEntrypointStartForTurboFrameEvent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -49,11 +51,25 @@ final class OAuthAuthenticator extends AbstractAuthenticator implements Authenti
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
+        $event = new OAuthAuthenticationSuccessEvent($request, $token, $firewallName);
+        $this->eventDispatcher->dispatch($event);
+
+        if ($event->getResponse() !== null) {
+            return $event->getResponse();
+        }
+
         return $this->oauthDriver->handleAuthSuccess($request);
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
+        $event = new OAuthAuthenticationFailureEvent($request, $exception);
+        $this->eventDispatcher->dispatch($event);
+
+        if ($event->getResponse() !== null) {
+            return $event->getResponse();
+        }
+
         return $this->oauthDriver->handleAuthFailure($request, $exception);
     }
 
