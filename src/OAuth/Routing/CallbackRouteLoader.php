@@ -41,7 +41,6 @@ final class CallbackRouteLoader extends Loader
                 defaults: [
                     '_controller' => OAuthCallbackController::class,
                 ],
-                host: $routeConfig['host'] ?? null,
                 methods: ['GET'],
             ));
         }
