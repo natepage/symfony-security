@@ -30,7 +30,11 @@ final class CallbackRouteLoader extends Loader
         $routes = new RouteCollection();
 
         foreach ($this->routesMapping as $routeName => $routeConfig) {
-            $path = u($routeConfig['pattern'] ?? '')
+            if (isset($routeConfig['pattern']) === false) {
+                continue;
+            }
+
+            $path = u($routeConfig['pattern'])
                 ->trimPrefix('^')
                 ->ensureStart('/')
                 ->ensureEnd('/oauth/callback')
@@ -42,6 +46,7 @@ final class CallbackRouteLoader extends Loader
                     '_controller' => OAuthCallbackController::class,
                 ],
                 methods: ['GET'],
+                condition: $routeConfig['condition'] ?? null
             ));
         }
 

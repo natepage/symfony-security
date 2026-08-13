@@ -38,6 +38,7 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
                 ->scalarNode('provider')->end()
                 ->scalarNode('auth_provider')->defaultNull()->end()
                 ->scalarNode('organisation_id')->defaultNull()->end()
+                ->scalarNode('callback_route_condition')->defaultNull()->end()
                 ->scalarNode('user_class')->isRequired()->end()
             ->end();
     }
@@ -85,7 +86,8 @@ final class OAuthWorkOsFactory implements AuthenticatorFactoryInterface, Prepend
             ->addTag('kernel.event_listener', ['event' => LogoutEvent::class]));
 
         // Callback route loader
-        $this->callbackRoutesMapping[$callbackRouteName] = $this->routeConfigs[$firewallName] ?? null;
+        $this->callbackRoutesMapping[$callbackRouteName] = $this->routeConfigs[$firewallName] ?? [];
+        $this->callbackRoutesMapping[$callbackRouteName]['condition'] = $config['callback_route_condition'] ?? null;
         // Fixed service id so it gets overridden with latest mapping
         $callbackRouteLoaderId = 'natepage.security.route_loader.workos';
         $container->setDefinition($callbackRouteLoaderId, (new Definition(CallbackRouteLoader::class))
