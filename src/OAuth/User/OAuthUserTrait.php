@@ -29,7 +29,7 @@ trait OAuthUserTrait
         $this->oauthParams = $oauthParams;
     }
 
-    public function setImpersonator(string $impersonator): void
+    public function setImpersonator(?string $impersonator): void
     {
         $this->impersonator = $impersonator;
     }

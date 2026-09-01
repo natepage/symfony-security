@@ -15,5 +15,5 @@ interface OAuthUserInterface extends UserInterface
 
     public function setOAuthParams(array $oauthParams): void;
 
-    public function setImpersonator(string $impersonator): void;
+    public function setImpersonator(?string $impersonator): void;
 }
