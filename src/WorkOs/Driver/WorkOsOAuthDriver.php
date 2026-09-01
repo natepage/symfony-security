@@ -266,6 +266,11 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
             );
         }
 
+        // Handle impersonation
+        if ($response->impersonator !== null) {
+            $user->setImpersonator($response->impersonator->email);
+        }
+
         // Set default OAuth params here so applications don't have to do it over and over
         $oauthParams = $user->getOAuthParams();
         $oauthParams[self::PARAM_ACCESS_TOKEN] = $response->accessToken;
