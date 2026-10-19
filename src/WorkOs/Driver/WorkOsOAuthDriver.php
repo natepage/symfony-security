@@ -7,6 +7,7 @@ use NatePage\SymfonySecurity\OAuth\Driver\AbstractOAuthDriver;
 use NatePage\SymfonySecurity\OAuth\User\OAuthUserInterface;
 use NatePage\SymfonySecurity\OAuth\ValueObject\Invitation;
 use NatePage\SymfonySecurity\WorkOs\Event\UserFromWorkOsAuthResponseEvent;
+use NatePage\SymfonySecurity\WorkOs\Exception\InvalidOrganisationException;
 use NatePage\SymfonySecurity\WorkOs\Exception\InvalidStateException;
 use NatePage\SymfonySecurity\WorkOs\Exception\InvalidUserException;
 use Firebase\JWT\JWK;
@@ -255,6 +256,16 @@ final class WorkOsOAuthDriver extends AbstractOAuthDriver
     private function instantiateUser(AuthenticateResponse $response): OAuthUserInterface
     {
         $jwt = $this->decodeAccessToken($response->accessToken);
+
+        // When the firewall is scoped to an organisation, reject any authentication for another one (or none)
+        if ($this->organisationId !== null && $response->organizationId !== $this->organisationId) {
+            throw new InvalidOrganisationException(\sprintf(
+                'Expected organisation %s, got %s',
+                $this->organisationId,
+                $response->organizationId ?? 'none'
+            ));
+        }
+
         $event = new UserFromWorkOsAuthResponseEvent($this->firewallName, $response, $jwt);
 
         $this->eventDispatcher->dispatch($event);
